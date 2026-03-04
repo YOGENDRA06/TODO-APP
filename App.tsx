@@ -1,21 +1,22 @@
-import { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  FlatList,
-  StyleSheet,
-} from "react-native";
 import {
   onAuthStateChanged,
   signInAnonymously,
 } from "firebase/auth";
-import { auth } from "./src/infrastructure/firebase";
-import { getTodayPlan, savePlan } from "./src/infrastructure/dailyPlanRepo";
-import { createTask } from "./src/application/createTask";
+import { useEffect, useState } from "react";
+import {
+  Button,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { completeTask } from "./src/application/completeTask";
+import { createTask } from "./src/application/createTask";
+import { initializeTodayPlan } from "./src/application/initializeDay";
 import { DailyPlan } from "./src/domain/dailyPlan";
+import { savePlan } from "./src/infrastructure/dailyPlanRepo";
+import { auth } from "./src/infrastructure/firebase";
 
 export default function App() {
   const [plan, setPlan] = useState<DailyPlan | null>(null);
@@ -23,7 +24,6 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
     signInAnonymously(auth).catch(console.error);
@@ -32,7 +32,7 @@ export default function App() {
       if (!user) return;
 
       try {
-        const dailyPlan = await getTodayPlan(user.uid, today);
+        const dailyPlan = await initializeTodayPlan(user.uid);
         setPlan(dailyPlan);
       } catch (err: any) {
         console.error(err);
